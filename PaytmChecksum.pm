@@ -17,7 +17,7 @@ use constant IV    => '@@@@&&&&####$$$$';
 sub encrypt{
 	my($input,$key) = @_;
 	my $cipher = Crypt::CBC->new({
-		'key'         => $key,
+		'key'         => $key, # 256 bits
 		'cipher'      => "Crypt::Rijndael",
 		'iv'          => IV,
 		'literal_key' => 1,
@@ -35,7 +35,7 @@ sub decrypt{
 	my ($encrypted, $key)= @_;
 	$encrypted = decode_base64($encrypted);
 	my $cipher = Crypt::CBC->new({
-		'key'         => $key,
+		'key'         => $key, # 256 bits
 		'cipher'      => "Crypt::Rijndael",
 		'iv'          => IV,
 		'literal_key' => 1,
@@ -57,6 +57,9 @@ sub generateSignature{
 }
 sub verifySignature{
 	my ($params, $key, $checksum)= @_;
+	if(exists($params["CHECKSUMHASH"])){
+		delete($params{"CHECKSUMHASH"});
+	}
 	if(ref($params) eq "HASH") {		
 		$params = getStringByParams(%$params);
 	}		
@@ -93,7 +96,7 @@ sub getStringByParams{
 	my @arr = ();
     foreach my $key (sort (keys(%params))) {
         if (exists $params{$key}){			  	
-            push @arr, defined($params{$key}) ? $params{$key} : "";
+            push @arr, defined($params{$key}) && lc $params{$key} != "null" ? $params{$key} : "";
         }
     }
    return join '|',@arr;
